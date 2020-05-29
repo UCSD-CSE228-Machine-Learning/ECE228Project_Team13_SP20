@@ -65,7 +65,7 @@ class AudioDataset(Dataset):
         return False
 
     def save_feature(self, feature="mel"):
-        target_dir = "/home/tiz007/228/228_data/UrbanSound8K/spec/"
+        target_dir = self.FeaturePath
         Folds = ["fold{}".format(i) for i in range(1,11)]
         for Fold in Folds:
             TargetFoldPath = os.path.join(target_dir, Fold)
