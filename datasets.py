@@ -13,10 +13,15 @@ from torch.utils.data import Dataset
 
 class AudioDataset(Dataset):
 
-    def __init__(self, index, DataPath, FeaturePath, LabelPath, mode="train"):
-
-        self.DataPath = DataPath
-        self.FeaturePath = FeaturePath
+    def __init__(self, index, DataRoot, LabelPath, feature="spec", mode="train"):
+        """
+        feature: 
+            "mel": mel spectrum
+            "mfcc": mfcc
+        """
+        self.DataRoot = DataRoot
+        self.DataPath = os.path.join(DataRoot, "audio")
+        self.FeaturePath = os.path.join(DataRoot, feature)
         self.LabelPath = LabelPath
 
         self.LabelDict = self.load_label(self.LabelPath)
@@ -25,8 +30,10 @@ class AudioDataset(Dataset):
         self.Folds = ["fold{}".format(i) for i in range(1,11)]
         
         if not self.verify():
-            self.save_feature()
-        
+            print("verify {} feature fail".format(feature))
+            self.save_feature(feature)
+        print("verify {} feature success".format(feature))
+
         if mode == "train":
             self.SelectFolds = self.Folds.copy()
             self.SelectFolds.remove("fold{}".format(index))
@@ -65,10 +72,11 @@ class AudioDataset(Dataset):
         return False
 
     def save_feature(self, feature="mel"):
-        target_dir = self.FeaturePath
         Folds = ["fold{}".format(i) for i in range(1,11)]
+        if not os.path.exists(self.FeaturePath):
+            os.mkdir(self.FeaturePath)
         for Fold in Folds:
-            TargetFoldPath = os.path.join(target_dir, Fold)
+            TargetFoldPath = os.path.join(self.FeaturePath, Fold)
             if not os.path.exists(TargetFoldPath):
                 os.mkdir(TargetFoldPath)
 
@@ -97,12 +105,19 @@ class AudioDataset(Dataset):
                 ax.axes.get_yaxis().set_visible(False)
                 ax.set_frame_on(False)
 
+                
+                if feature == "spec":
+                    S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
+                    librosa.display.specshow(librosa.power_to_db(S, ref=np.max))
 
-                # Compute the mel-scaled spectrogram for the sample
-                S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
+                elif feature == "mfcc":
+                    mfcc = librosa.feature.mfcc(y=samples, sr=sample_rate)
+                    librosa.display.specshow(mfcc, x_axis='time')
+                else:
+                    raise ValueError('Unknown feature type.')
+                    
 
                 # Convert the scaling of the spectrogram to dB units
-                librosa.display.specshow(librosa.power_to_db(S, ref=np.max))
 
                 # Save the converted image 
                 plt.savefig(filename, dpi=400, bbox_inches='tight',pad_inches=0)
