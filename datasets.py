@@ -18,15 +18,16 @@ class AudioDataset(Dataset):
         feature: 
             "mel": mel spectrum
             "mfcc": mfcc
+            "mel_raw": raw mel data 
+            "mel_mean": mean over frequency
         """
         self.DataRoot = DataRoot
         self.DataPath = os.path.join(DataRoot, "audio")
         self.FeaturePath = os.path.join(DataRoot, feature)
         self.LabelPath = LabelPath
-
         self.LabelDict = self.load_label(self.LabelPath)
-        
         self.FoldNum = 10
+        self.feature = feature
         self.Folds = ["fold{}".format(i) for i in range(1,11)]
         
         if not self.verify():
@@ -85,8 +86,13 @@ class AudioDataset(Dataset):
 
                 # Converted filename will be same as original file, with a different extension
                 filename  = os.path.join(TargetFoldPath, AudioName)[:-4]
-                filename += ".png"
-
+                if feature=="spec" or feature=="mfcc":
+                    filename += ".png"
+                elif feature == "mel_raw" or "mel_mean":
+                    filename += ".npy"
+                else:
+                    raise ValueError('Unknown feature type.')
+                    
                 if AudioName == ".DS_Store" or os.path.exists(filename):
                     print("skip: {}".format(filename))
                     continue
@@ -98,32 +104,45 @@ class AudioDataset(Dataset):
                 # Load the audio file as a waveform, store its sampling rate
                 samples, sample_rate = librosa.load(AudioPath)
 
-                # Define the dimensions of the spectrogram to be saved
-                fig = plt.figure(figsize=[0.72,0.72])
-                ax = fig.add_subplot(111)
-                ax.axes.get_xaxis().set_visible(False)
-                ax.axes.get_yaxis().set_visible(False)
-                ax.set_frame_on(False)
+                if feature=="spec" or feature=="mfcc":
 
+                    fig = plt.figure(figsize=[0.72,0.72])
+                    ax = fig.add_subplot(111)
+                    ax.axes.get_xaxis().set_visible(False)
+                    ax.axes.get_yaxis().set_visible(False)
+                    ax.set_frame_on(False)
+                elif feature=="mel_raw" or feature=="mel_mean":
+                    pass
+                else:
+                    raise ValueError('Unknown feature type.')
+                
                 
                 if feature == "spec":
                     S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
                     librosa.display.specshow(librosa.power_to_db(S, ref=np.max))
-
                 elif feature == "mfcc":
                     mfcc = librosa.feature.mfcc(y=samples, sr=sample_rate)
                     librosa.display.specshow(mfcc, x_axis='time')
+                elif feature == "mel_raw":
+                    S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
+                    data = librosa.power_to_db(S, ref=np.max)
+                elif feature == "mel_mean":
+                    S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
+                    data = np.mean(S, axis=1)
+                    print(data.shape)
                 else:
                     raise ValueError('Unknown feature type.')
                     
+                if feature=="spec" or feature=="mfcc":
+                    
+                    # Save the converted image 
+                    plt.savefig(filename, dpi=400, bbox_inches='tight',pad_inches=0)
 
-                # Convert the scaling of the spectrogram to dB units
-
-                # Save the converted image 
-                plt.savefig(filename, dpi=400, bbox_inches='tight',pad_inches=0)
-
-                # Close the open image
-                plt.close('all')
+                    # Close the open image
+                    plt.close('all')
+                    
+                elif feature == "mel_raw" or feature == "mel_mean":
+                    np.save(filename, data)
 
 
     def load(self, Folds):
@@ -136,7 +155,7 @@ class AudioDataset(Dataset):
             FoldPath = os.path.join(self.FeaturePath, Fold)
             for ImgName in os.listdir(FoldPath):
                 
-                if not ImgName[-4:] == ".png":
+                if not (ImgName[-4:] == ".png" or ImgName[-4:] == ".npy"):
                     continue
                        
                 ImgPath = os.path.join(FoldPath, ImgName)
@@ -147,13 +166,22 @@ class AudioDataset(Dataset):
         return Audios, Labels
     
     def __getitem__(self, idx):
-        
-        Img = cv2.imread(self.Audios[idx], cv2.IMREAD_COLOR)
-
-        
         Label = self.Labels[idx]
-            
-        return Img, Label
+        if self.feature == "spec" or self.feature == "mfcc":
+            data = cv2.imread(self.Audios[idx], cv2.IMREAD_COLOR)
+            return data, Label
+        elif self.feature == "mel_raw":
+            data = np.load(self.Audios[idx])
+            length = data.shape[1] 
+            #print(173-data.shape[1])
+            data = np.pad(data, ((0,0),(0,174-data.shape[1])), "constant").T
+            return data, Label, length
+        elif self.feature == "mel_mean":
+            data = np.load(self.Audios[idx]).T
+            length = data.shape[1] 
+            return data, Label
+        else:
+            raise ValueError('Unknown feature type.')
     
     def __len__(self):
         
