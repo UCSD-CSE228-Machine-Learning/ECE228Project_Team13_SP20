@@ -88,7 +88,7 @@ class AudioDataset(Dataset):
                 filename  = os.path.join(TargetFoldPath, AudioName)[:-4]
                 if feature=="spec" or feature=="mfcc":
                     filename += ".png"
-                elif feature == "mel_raw" or "mel_mean":
+                elif feature == "mel_raw" or "mel_mean" or "mel_mean_db":
                     filename += ".npy"
                 else:
                     raise ValueError('Unknown feature type.')
@@ -111,7 +111,7 @@ class AudioDataset(Dataset):
                     ax.axes.get_xaxis().set_visible(False)
                     ax.axes.get_yaxis().set_visible(False)
                     ax.set_frame_on(False)
-                elif feature=="mel_raw" or feature=="mel_mean":
+                elif feature=="mel_raw" or feature=="mel_mean" or feature=="mel_mean_db":
                     pass
                 else:
                     raise ValueError('Unknown feature type.')
@@ -129,7 +129,9 @@ class AudioDataset(Dataset):
                 elif feature == "mel_mean":
                     S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
                     data = np.mean(S, axis=1)
-                    #data = np.mean(librosa.power_to_db(S, ref=np.max), axis=1)
+                elif feature == "mel_mean_db":
+                    S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
+                    data = np.mean(librosa.power_to_db(S, ref=np.max), axis=1)
                 else:
                     raise ValueError('Unknown feature type.')
                     
@@ -141,7 +143,7 @@ class AudioDataset(Dataset):
                     # Close the open image
                     plt.close('all')
                     
-                elif feature == "mel_raw" or feature == "mel_mean":
+                elif feature == "mel_raw" or feature == "mel_mean" or feature=="mel_mean_db":
                     np.save(filename, data)
 
 
@@ -178,8 +180,9 @@ class AudioDataset(Dataset):
             data = data / data.max()
             
             data = np.pad(data, ((0,0),(0,174-data.shape[1])), "constant").T
+
             return data, Label, length
-        elif self.feature == "mel_mean":
+        elif self.feature == "mel_mean" or self.feature == "mel_mean_db":
             data = np.load(self.Audios[idx]).T
             return data, Label
         else:
