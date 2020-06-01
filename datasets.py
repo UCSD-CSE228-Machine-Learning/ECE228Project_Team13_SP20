@@ -129,7 +129,7 @@ class AudioDataset(Dataset):
                 elif feature == "mel_mean":
                     S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
                     data = np.mean(S, axis=1)
-                    print(data.shape)
+                    #data = np.mean(librosa.power_to_db(S, ref=np.max), axis=1)
                 else:
                     raise ValueError('Unknown feature type.')
                     
@@ -173,12 +173,14 @@ class AudioDataset(Dataset):
         elif self.feature == "mel_raw":
             data = np.load(self.Audios[idx])
             length = data.shape[1] 
-            #print(173-data.shape[1])
+            
+            data = data - data.min()
+            data = data / data.max()
+            
             data = np.pad(data, ((0,0),(0,174-data.shape[1])), "constant").T
             return data, Label, length
         elif self.feature == "mel_mean":
             data = np.load(self.Audios[idx]).T
-            length = data.shape[1] 
             return data, Label
         else:
             raise ValueError('Unknown feature type.')
