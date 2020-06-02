@@ -20,9 +20,9 @@ class AudioDataset(Dataset):
             "mfcc": mfcc
             "mel_raw": raw mel data 
             "mel_mean": mean over frequency
-            "mel_mean_db": mean over frequency in db
+            "mfcc_mean":
+            "mfcc_mean_80":
         """
-        
         self.DataRoot = DataRoot
         self.DataPath = os.path.join(DataRoot, "audio")
         self.FeaturePath = os.path.join(DataRoot, feature)
@@ -32,13 +32,11 @@ class AudioDataset(Dataset):
         self.feature = feature
         self.Folds = ["fold{}".format(i) for i in range(1,11)]
         
-        # verify if data alread exist
         if not self.verify():
             print("verify {} feature fail".format(feature))
             self.save_feature(feature)
         print("verify {} feature success".format(feature))
 
-        # dataset mode
         if mode == "train":
             self.SelectFolds = self.Folds.copy()
             self.SelectFolds.remove("fold{}".format(index))
@@ -48,10 +46,7 @@ class AudioDataset(Dataset):
         self.Audios, self.Labels = self.load(self.SelectFolds)
         
     def load_label(self, LabelPath):
-        """
-        Function to load label dictionary
-        """
-        
+
         # load label
         LabelDict = {}
         with open(LabelPath) as csvfile:
@@ -64,9 +59,7 @@ class AudioDataset(Dataset):
         return LabelDict
 
     def verify(self):
-        """
-        Verify dataset.
-        """
+
         Len = 0
         if os.path.exists(self.FeaturePath):
             
@@ -82,29 +75,22 @@ class AudioDataset(Dataset):
         return False
 
     def save_feature(self, feature="mel"):
-        """
-        Save pre-compute feature.
-        """
-        
         Folds = ["fold{}".format(i) for i in range(1,11)]
-        
         if not os.path.exists(self.FeaturePath):
             os.mkdir(self.FeaturePath)
-        
         for Fold in Folds:
             TargetFoldPath = os.path.join(self.FeaturePath, Fold)
             if not os.path.exists(TargetFoldPath):
                 os.mkdir(TargetFoldPath)
 
             FoldPath = os.path.join(self.DataPath, Fold)
-            
             for AudioName in os.listdir(FoldPath):
 
                 # Converted filename will be same as original file, with a different extension
                 filename  = os.path.join(TargetFoldPath, AudioName)[:-4]
                 if feature=="spec" or feature=="mfcc":
                     filename += ".png"
-                elif feature == "mel_raw" or "mel_mean" or "mel_mean_db":
+                elif feature == "mel_raw" or "mel_mean" or "mel_mean_db" or "mfcc_mean" or "mfcc_mean_80":
                     filename += ".npy"
                 else:
                     raise ValueError('Unknown feature type.')
@@ -127,22 +113,19 @@ class AudioDataset(Dataset):
                     ax.axes.get_xaxis().set_visible(False)
                     ax.axes.get_yaxis().set_visible(False)
                     ax.set_frame_on(False)
-                elif feature=="mel_raw" or feature=="mel_mean" or feature=="mel_mean_db":
+                elif feature=="mel_raw" or feature=="mel_mean" or feature=="mel_mean_db" or feature=="mfcc_mean" or feature=="mfcc_mean_80":
                     pass
                 else:
                     raise ValueError('Unknown feature type.')
                 
-                # feature extraction
+                
                 if feature == "spec":
-                    # spectrogram
                     S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
                     librosa.display.specshow(librosa.power_to_db(S, ref=np.max))
                 elif feature == "mfcc":
-                    # mfcc
                     mfcc = librosa.feature.mfcc(y=samples, sr=sample_rate)
                     librosa.display.specshow(mfcc, x_axis='time')
                 elif feature == "mel_raw":
-                    # spectrogram raw
                     S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
                     data = librosa.power_to_db(S, ref=np.max)
                 elif feature == "mel_mean":
@@ -151,6 +134,13 @@ class AudioDataset(Dataset):
                 elif feature == "mel_mean_db":
                     S = librosa.feature.melspectrogram(y=samples, sr=sample_rate)
                     data = np.mean(librosa.power_to_db(S, ref=np.max), axis=1)
+                elif feature == "mfcc_mean":
+                    S = librosa.feature.mfcc(y=samples, sr=sample_rate,n_mfcc=40)
+                    data = np.mean(S, axis=1)
+                elif feature == "mfcc_mean_80":
+                    S = librosa.feature.mfcc(y=samples, sr=sample_rate,n_mfcc=80)
+                    data = np.mean(S, axis=1)    
+         
                 else:
                     raise ValueError('Unknown feature type.')
                     
@@ -162,7 +152,7 @@ class AudioDataset(Dataset):
                     # Close the open image
                     plt.close('all')
                     
-                elif feature == "mel_raw" or feature == "mel_mean" or feature=="mel_mean_db":
+                elif feature == "mel_raw" or feature == "mel_mean" or feature=="mel_mean_db" or feature=="mfcc_mean" or feature=="mfcc_mean_80":
                     np.save(filename, data)
 
 
@@ -188,32 +178,25 @@ class AudioDataset(Dataset):
     
     def __getitem__(self, idx):
         Label = self.Labels[idx]
-        
         if self.feature == "spec" or self.feature == "mfcc":
-            # spec and mfcc are image data
             data = cv2.imread(self.Audios[idx], cv2.IMREAD_COLOR)
             return data, Label
-        
         elif self.feature == "mel_raw":
-            # mel_raw is sequential data
             data = np.load(self.Audios[idx])
             length = data.shape[1] 
             
-            # normalize
             data = data - data.min()
             data = data / data.max()
             
-            # padding
             data = np.pad(data, ((0,0),(0,174-data.shape[1])), "constant").T
 
             return data, Label, length
-        
-        elif self.feature == "mel_mean" or self.feature == "mel_mean_db":
-            # mel_mean and mel_mean_db are 1-D data
+        elif self.feature == "mel_mean" or self.feature == "mel_mean_db" or self.feature == "mfcc_mean" or self.feature == "mfcc_mean_80":
             data = np.load(self.Audios[idx]).T
             return data, Label
         else:
             raise ValueError('Unknown feature type.')
     
     def __len__(self):
+        
         return len(self.Audios)
