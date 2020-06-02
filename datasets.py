@@ -179,7 +179,23 @@ class AudioDataset(Dataset):
     def __getitem__(self, idx):
         Label = self.Labels[idx]
         if self.feature == "spec" or self.feature == "mfcc":
-            data = cv2.imread(self.Audios[idx], cv2.IMREAD_COLOR)
+            # spec and mfcc are image data
+            im = Image.open(self.Audios[idx])
+            im = im.convert("RGB")
+            if self.mode == "train":
+                T = transforms.Compose([
+                transforms.Resize(256),
+                transforms.RandomCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                ])
+            else:
+                T = transforms.Compose([
+                transforms.Resize(224),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                ])
+            data = T(im)
             return data, Label
         elif self.feature == "mel_raw":
             data = np.load(self.Audios[idx])
