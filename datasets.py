@@ -8,6 +8,8 @@ import librosa.display
 import torch
 import librosa
 
+from PIL import Image
+import torchvision.transforms as transforms
 from torch.utils.data import Dataset
 
 
@@ -31,6 +33,7 @@ class AudioDataset(Dataset):
         self.FoldNum = 10
         self.feature = feature
         self.Folds = ["fold{}".format(i) for i in range(1,11)]
+        self.mode = mode
         
         if not self.verify():
             print("verify {} feature fail".format(feature))
