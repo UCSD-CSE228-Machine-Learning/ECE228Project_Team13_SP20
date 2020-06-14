@@ -5,13 +5,11 @@
 
 ## File Organization 
 ### Datasets/ ----------- Contains dataset API.<br>
-It contains a dataset.py file that defines the dataset API. The dataset class can automatically load, preprocess and generate data batch for training and testing.<br>
-
-
+There is a dataset.py file that defines the dataset API in the "Datasets" fold. The dataset class can automatically load, preprocess and generate data batch for training and testing.<br>
 
 ### Deep_learning_methods/ ------- Contains results of deep machine learning methods.<br>
-The deep learning package contain the ipynb files of RNN, CNN, DNN, and resnet18, it uses the pytorch network models and provides the Accuracy and loss. The ResNet implementation is in the datasets package.
+There are three files in the "Deep_learning_methods" fold corresponding to RNN, CNN and DNN methods. Using the pytorch network models, we provide the accuracy and loss finally. Each file has only one fold results as demo instead of taking 10-fold cross validation.
 
 ### Traditional_methods/ ------- Contains results of traditional machine learning methods.<br>
-There are four files in the "traditional" fold -- two for mel spectrogram of lower dimension and two for mfcc of lower dimension. Each file applies four traditonal methods which are SVM, KNN, RF and XGBoost and has only one fold results as demo instead of taking 10-fold cross validation.
+There are four files in the "traditional_methods" fold -- two for mel spectrogram of lower dimension and two for mfcc of lower dimension. Each file applies four traditonal methods which are SVM, KNN, RF and XGBoost and has only one fold results as demo instead of taking 10-fold cross validation.
 
