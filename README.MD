@@ -11,5 +11,5 @@ There is a dataset.py file that defines the dataset API in the "Datasets" fold. 
 There are three files in the "Deep_learning_methods" fold corresponding to RNN, CNN and DNN methods. Using the pytorch network models, we provide the accuracy and loss finally. Each file has only one fold results as demo instead of taking 10-fold cross validation.
 
 ### Traditional_methods/ ------- Contains results of traditional machine learning methods.<br>
-There are four files in the "traditional_methods" fold -- two for mel spectrogram of lower dimension and two for mfcc of lower dimension. Each file applies four traditonal methods which are SVM, KNN, RF and XGBoost and has only one fold results as demo instead of taking 10-fold cross validation.
+There are four files in the "traditional_methods" fold -- two for mel spectrogram feature of lower dimension and two for mfcc feature of lower dimension. Each file applies four traditonal methods which are SVM, KNN, RF and XGBoost and has only one fold results as demo instead of taking 10-fold cross validation.
 
