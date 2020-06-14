@@ -4,7 +4,7 @@
 
 
 ## File Organization 
-### dataset/ ----------- Contains dataset API.<br>
+### Datasets/ ----------- Contains dataset API.<br>
 It contains a dataset.py file that defines the dataset API. The dataset class can automatically load, preprocess and generate data batch for training and testing.<br>
 
 
