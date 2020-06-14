@@ -1,4 +1,4 @@
-# ECE 228 Project
+# ECE228Project_Team13_SP20
 
 ### Dataset "UrbanSound8K" link: wget https://goo.gl/8hY5ER
 
