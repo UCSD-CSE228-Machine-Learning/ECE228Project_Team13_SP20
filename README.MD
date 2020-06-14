@@ -1,6 +1,6 @@
 # ECE 228 Project
 
-### UrbanSound link: wget https://goo.gl/8hY5ER
+### Dataset "UrbanSound8K" link: wget https://goo.gl/8hY5ER
 
 ## File Organization
 dataset/ ----------- Contains dataset API.<br>
