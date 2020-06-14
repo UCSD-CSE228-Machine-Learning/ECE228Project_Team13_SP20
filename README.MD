@@ -3,7 +3,7 @@
 ### Dataset "UrbanSound8K" link: wget https://goo.gl/8hY5ER
 
 
-## File Organization ------- Contains dataset API.<br>
+## File Organization 
 ### dataset/ ----------- Contains dataset API.<br>
 It contains a dataset.py file that defines the dataset API. The dataset class can automatically load, preprocess and generate data batch for training and testing.<br>
 
