@@ -5,7 +5,7 @@
 
 ## File Organization 
 ### Datasets/ ----------- Contains dataset API.<br>
-There is a dataset.py file that defines the dataset API in the "Datasets" fold. The dataset class can automatically load, preprocess and generate data batch for training and testing.<br>
+There is a dataset.py and resnet.py file that defines the dataset API in the "Datasets" fold. The dataset class can automatically load, preprocess and generate data batch for training and testing. And the resnet define the resnet layers structure and implementation<br>
 
 ### Deep_learning_methods/ ------- Contains results of deep machine learning methods.<br>
 There are three files in the "Deep_learning_methods" fold corresponding to RNN, CNN and DNN methods. Using the pytorch network models, we provide the accuracy and loss finally. Each file has only one fold results as demo instead of taking 10-fold cross validation.
